@@ -1,26 +1,130 @@
-# Facebook ThreatExchange
+# node-threatexchange
 
-ThreatExchange is a set of RESTful APIs on the Facebook Platform for querying, publishing, and sharing security threat information. It's a light-weight way for exchanging details on malware, phishing pages, and other threats with either specific members of the community or the ThreatExchange community at large.
+This code is a node.js implementation of the Facebook Threat Exchange.
 
-This repository contains example code for using the API.
+Documentation referenced in this project is located [here](https://github.com/facebook/ThreatExchange/blob/master/doc/threat_exchange.md)
 
-## Documentation
-Full details on the ThreatExchange API, data formats, and best practices are available at  [https://developers.facebook.com/docs/threat-exchange/](https://developers.facebook.com/docs/threat-exchange/)
+## Usage
 
-## Example Code
-This project offers example code in Python, PHP and Ruby.  There is also a reference user interface to ThreatExchanage, which is fully client-side, and written in Javascript!
+```
+var threatexchange = require('node-threatexchange');
 
-## Get all available data
+var app_id = 'APP_ID',
+var app_secret ='APP_SECRET' 
 
-To get ALL the data in ThreatExchange, use our scripts in the get_all_data
-folder. For example, to get all the threat indicators uploaded to ThreatExchange
-over the last 10 days with the text "facebook", run the following command:
+var api = threatexchange.createThreatExchange(app_id,app_secret);
+```
 
-   $ python ./get_all_data/get_threat_indicators.py --text="facebook"
-     --days_back=10
+Refer to `test/test.js` for usage of each endpoint. 
 
-## Blog
-You can get details on the ThreatExchange platform, new features and other updates via our blog at [https://www.facebook.com/threatexchange](https://www.facebook.com/threatexchange).
+Current endpoints implemented:
 
-## Getting Access
-To request access to ThreatExchange, please submit an application via [https://developers.facebook.com/products/threat-exchange/](https://developers.facebook.com/products/threat-exchange/).
+### /threat_exchange_members GET
+GET request for list of threat_exchange_members
+
+Usage:
+```
+api.getThreatExchangeMembers(function(err,data) {
+    // process data from response here
+});
+```
+
+### /malware_analyses GET
+GET request for malware analyses
+
+Usage:
+```
+var options = {}; // optional values as shown in Facebook documentation
+api.getMalwareAnalyses(options,function(err,data) {
+    // process data from response here
+});
+```
+
+### /threat_indicators GET
+GET request for threat indicators
+
+Usage:
+```
+var options = {}; // optional values here as shown in Facebook documentation
+api.getThreatIndicators(options,function(err,data) {
+    // process data from response here
+});
+```
+
+### /threat_indicators POST
+POST request to add a threat indicator
+
+Usage:
+```
+var options = {}; /* required options for adding a new threat indicator, helper function validatePostThreatIndicator is called and returns an error if necessary fields are missing */
+api.postThreatIndicator(options,function(err,data) {
+    // process response here
+});
+```
+
+### /\<object_id\> (Malware) GET
+GET request to retrieve information on an object ID pertaining to malware
+
+Usage:
+```
+var fields = {}; // optional fields here as shown in Facebook documentation
+var id = 12345; // unique ID to malware object
+api.getMalwareObject(id,fields,function(err,data) {
+    // process data here
+});
+```
+
+### /\<object_id\> (Threat Indicator) GET
+GET request to retrieve information on an object ID pertaining to a threat indicator
+
+Usage:
+```
+var fields = {}; // optional fields here as shown in Facebook documentation
+var id = 12345; // unique ID to threat indicator object
+api.getThreatIndicatorObject(id,fields,function(err,data) {
+    // process data here
+});
+```
+
+### /\<object_id\> (Edit existing data) POST
+POST request to edit an existing object
+
+```
+var options = {}; // fields to edit as shown in Facebook documentation
+var id = 12345; // object to edit
+api.editObject(id,options,function(err,data) {
+    // process data here
+});
+```
+
+### /\<object_id\>/related POST
+POST request to add a connection to an \<object_id\>
+
+```
+var id1 = 12345; // original ID (the \<object_id\> in the url)
+var id2 = 54321; // id to relate to id1
+api.submitConnection(id1,id2,function(err,data) {
+    // process data here 
+});
+```
+
+### /\<object_id\>/related DEL
+DEL request to remove a connection from \<object_id\>
+
+```
+var id1 = 12345; // original ID (the \<object_id\> in the url)
+var id2 = 54321; // id to relate to id1
+api.deleteConnection(id1,id2,function(err,data) {
+    // process data here 
+});
+```
+
+## Integration Tests
+
+Run these to test integration with FBTE. Record once to cache everything
+then run cache to play it back. Must use your APP_ID and APP_SECRET!
+
+
+`VCR_MODE=record APP_ID='' APP_SECRET='' npm test`
+
+`VCR_MODE=cache APP_ID='' APP_SECRET='' npm test`
